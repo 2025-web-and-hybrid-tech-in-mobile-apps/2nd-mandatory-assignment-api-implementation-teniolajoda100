@@ -175,24 +175,43 @@ components:
 */
 
 describe("Testing login", function () {
-  before(async function () {
-    // start the server
-    server.start();
+ before(async function () {
+  // Start the server
+  useres = []
+  server.start();
 
-    await chai
-      .request(apiAddress)
-      .post("/signup")
-      .send({
-        userHandle: "DukeNukem",
-        password: "123456",
-      })
-      .then((response) => {
-        expect(response.status).to.equal(201);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  });
+  // Register a user
+  await chai
+    .request(apiAddress)
+    .post("/signup")
+    .send({
+      userHandle: "DukeNukem",
+      password: "123456",
+    })
+    .then((response) => {
+      expect(response.status).to.equal(201); // Ensure registration is successful
+    })
+    
+    .catch((error) => {
+      throw error;
+    });
+
+  // Log in the user to get JWT
+  await chai
+    .request(apiAddress)
+    .post("/login")
+    .send({
+      userHandle: "DukeNukem",
+      password: "123456",
+    })
+    .then((response) => {
+      expect(response.status).to.equal(200); // Ensure login is successful
+      JWT = response.body.jsonWebToken; // Store the JWT for later use
+    })
+    .catch((error) => {
+      throw error;
+    });
+});
 
   after(function () {
     // close the server
@@ -205,7 +224,7 @@ describe("Testing login", function () {
       .post("/login")
       .send({ userHandle: "DukeNukem", password: "123456" })
       .end((err, res) => {
-        expect(res).to.have.status(200);
+        expect(res).to.have.status(200); 
         expect(res.body).to.be.jsonSchema(loginSuccessfulSchema);
         done();
       });
