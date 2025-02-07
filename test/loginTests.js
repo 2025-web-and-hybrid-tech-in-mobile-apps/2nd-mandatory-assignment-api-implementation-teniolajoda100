@@ -1,3 +1,4 @@
+
 const chai = require("chai");
 const expect = require("chai").expect;
 chai.use(require("chai-http"));
@@ -175,43 +176,55 @@ components:
 */
 
 describe("Testing login", function () {
- before(async function () {
-  // Start the server
-  useres = []
-  server.start();
-
-  // Register a user
-  await chai
-    .request(apiAddress)
-    .post("/signup")
-    .send({
-      userHandle: "DukeNukem",
-      password: "123456",
-    })
-    .then((response) => {
-      expect(response.status).to.equal(201); // Ensure registration is successful
-    })
+  before(async function () {
     
-    .catch((error) => {
-      throw error;
-    });
-
-  // Log in the user to get JWT
-  await chai
-    .request(apiAddress)
-    .post("/login")
-    .send({
-      userHandle: "DukeNukem",
-      password: "123456",
-    })
-    .then((response) => {
-      expect(response.status).to.equal(200); // Ensure login is successful
-      JWT = response.body.jsonWebToken; // Store the JWT for later use
-    })
-    .catch((error) => {
-      throw error;
-    });
-});
+    users = [];
+    console.log("Users array cleared:", users); 
+  
+    
+    server.start();
+  
+    try {
+   
+      const signupResponse = await chai.request(apiAddress).post("/signup").send({
+        userHandle: "DukeNukem",
+        password: "123456",
+      });
+  
+      console.log("Signup Response:", signupResponse.body); // Log response
+  
+      if (signupResponse.status !== 201 && signupResponse.body.message !== "User already exists") {
+        throw new Error(`Unexpected signup response: ${signupResponse.status}`);
+      }
+    } catch (error) {
+      // Handle expected "User already exists" scenario gracefully
+      if (error.response?.status === 400 && error.response.body.message === "User already exists") {
+        console.log("User already exists, proceeding with login.");
+      } else {
+        console.error("Signup Error:", error.response ? error.response.body : error.message);
+        throw error;
+      }
+    }
+  
+    // Log in the user to get JWT
+    await chai
+      .request(apiAddress)
+      .post("/login")
+      .send({
+        userHandle: "DukeNukem",
+        password: "123456",
+      })
+      .then((response) => {
+        console.log("Login Response:", response.body);
+        expect(response.status).to.equal(200); 
+        JWT = response.body.jsonWebToken; 
+      })
+      .catch((error) => {
+        console.error("Login Error:", error.response ? error.response.body : error.message); // Log detailed error
+        throw error;
+      });
+  });
+  
 
   after(function () {
     // close the server

@@ -33,46 +33,70 @@ function authenticateToken(req, res, next) {
 }
 
 // user registration, registering a new user
+
+
 app.post("/signup", (req, res) => {
-    const { userHandle, password } = req.body;
+  const { userHandle, password } = req.body;
 
-    //if userHandle and password are provided
-    if (!userHandle || !password) {
-        return res.status(400).json({ message: "userHandle and password are required" });
-    }
-    //if userHandle is at least 6 characters long
-    if (userHandle.length < 6) {
-        return res.status(400).json({ message: "userHandle must be at least 6 characters long" });
-    }
-    //if password is at least 6 characters long
-    if (password.length < 6) {
-        return res.status(400).json({ message: "password must be at least 6 characters long" });
-    }
+  console.log("Current users:", users); // Log the current state of the users array
 
-    if (users.some(user => user.userHandle === userHandle)) {
-        return res.status(400).json({ message: "User already exists" });
-    }
-    // add new user to the list
-    users.push({ userHandle, password });
-    res.status(201).json({ message: "User registered successfully" });
+  // Check if userHandle and password are provided
+  if (!userHandle || !password) {
+    return res.status(400).json({ message: "userHandle and password are required" });
+  }
+
+  // Check if userHandle is at least 6 characters long
+  if (userHandle.length < 6) {
+    return res.status(400).json({ message: "userHandle must be at least 6 characters long" });
+  }
+
+  // Check if password is at least 6 characters long
+  if (password.length < 6) {
+    return res.status(400).json({ message: "password must be at least 6 characters long" });
+  }
+
+  // Check if the userHandle is already taken
+  const userExists = users.some(user => user.userHandle === userHandle);
+  if (userExists) {
+    return res.status(400).json({ message: "User already exists" });
+  }
+
+  // Add the new user to the users array
+  users.push({ userHandle, password });
+  console.log("User registered successfully:", { userHandle, password }); // Log success
+  res.status(201).json({ message: "User registered successfully" });
 });
+//new
+
 
 // user Login
 app.post("/login", (req, res) => {
-    const { userHandle, password } = req.body;
+    const { userHandle, password, ...extraFields } = req.body;
 
-    // check if user exists and password matches
+    // Check for missing fields
+    if (!userHandle || !password) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Check for unexpected fields
+    if (Object.keys(extraFields).length > 0) {
+        return res.status(400).json({ message: "Unexpected fields in request" });
+    }
+
+    // Check if user exists and password matches
     const user = users.find(user => user.userHandle === userHandle && user.password === password);
 
     if (!user) {
         return res.status(401).json({ message: "Invalid userHandle or password" });
     }
-    // generate a jwt token expires in an hour
+
+    // Generate a JWT token that expires in an hour
     const token = jwt.sign({ userHandle }, JWT_SECRET, { expiresIn: "1h" });
 
-    // return 200 on success
-    res.status(200).json({ jsonWebToken: token }); 
+    // Return 200 on success with token
+    return res.status(200).json({ jsonWebToken: token });
 });
+
 
 // submit a new high score (auth required)
 app.post("/high-scores", authenticateToken, (req, res) => {
@@ -123,4 +147,5 @@ module.exports = {
     close: function () {
         serverInstance.close();
     },
+      users,
 };
