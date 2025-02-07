@@ -61,7 +61,7 @@ app.post("/signup", (req, res) => {
 
   // Add the new user to the users array
   users.push({ userHandle, password });
-  console.log("User registered successfully:", { userHandle, password }); // Log success
+  console.log("User registered successfully:", { userHandle, password }); 
   res.status(201).json({ message: "User registered successfully" });
 });
 
