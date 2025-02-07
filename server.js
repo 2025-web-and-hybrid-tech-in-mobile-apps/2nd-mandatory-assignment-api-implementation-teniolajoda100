@@ -7,8 +7,6 @@ const port = process.env.PORT || 3000;
 dotenv.config();
 app.use(express.json());
 
-// ------ WRITE YOUR SOLUTION HERE BELOW ------//
-
 // secret key for JWT to login and verify tokens
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
@@ -32,9 +30,9 @@ function authenticateToken(req, res, next) {
     }
 }
 
+// ------ WRITE YOUR SOLUTION HERE BELOW ------//
+
 // user registration, registering a new user
-
-
 app.post("/signup", (req, res) => {
   const { userHandle, password } = req.body;
 
@@ -66,8 +64,6 @@ app.post("/signup", (req, res) => {
   console.log("User registered successfully:", { userHandle, password }); // Log success
   res.status(201).json({ message: "User registered successfully" });
 });
-//new
-
 
 // user Login
 app.post("/login", (req, res) => {
@@ -76,6 +72,11 @@ app.post("/login", (req, res) => {
     // Check for missing fields
     if (!userHandle || !password) {
         return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Check if userHandle and password are of correct data types (strings)
+    if (typeof userHandle !== 'string' || typeof password !== 'string') {
+        return res.status(400).json({ error: "userHandle and password must be strings" });
     }
 
     // Check for unexpected fields
@@ -147,5 +148,5 @@ module.exports = {
     close: function () {
         serverInstance.close();
     },
-      users,
+    users,
 };
